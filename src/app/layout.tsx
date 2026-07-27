@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Provider from "@/Provider";
+
+
 
 export const metadata: Metadata = {
   title: "Snapcart | 10 minutes grocery Delivery app",
-  description: "10 minutes grocery Delivery app",
+  description: "10 minutes grocery Delivery app", 
 };
 
 export default function RootLayout({
@@ -15,7 +18,10 @@ export default function RootLayout({
     <html
       lang="en">
       <body className="w-full min-h-screen bg-linear-to-b from-green-100 to-white">
+  <Provider>
         {children}
+        </Provider>
+
         </body>
     </html>
   );
