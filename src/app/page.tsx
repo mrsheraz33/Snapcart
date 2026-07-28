@@ -1,5 +1,6 @@
 import { auth } from '@/auth'
 import EditRoleMobile from '@/components/EditRoleMobile'
+import Nav from '@/components/Nav'
 import connectDB from '@/lib/db'
 import User from '@/model/user.model'
 import { redirect } from 'next/navigation'
@@ -16,7 +17,9 @@ if(inComplete){
    return <EditRoleMobile/>
 }
   return (
-    <div>page</div>
+ <>
+ <Nav user={user}/>
+ </>
   )
 }
 
