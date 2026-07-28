@@ -31,7 +31,7 @@ e.preventDefault()
 setLoading(true)
 try {
     await signIn("credentials", {
-        email, password
+        email, password , callbackUrl:"/"
     })
 
     setLoading(false)
@@ -39,6 +39,8 @@ try {
     console.log(error);
     setLoading(false)
 }
+
+
   }
 
   console.log(session);
@@ -136,13 +138,13 @@ try {
           <span className="flex-1 h-px bg-gray-200"></span>
         </div>
 
-        <button
+            <div
           className="w-full flex items-center justify-center gap-3 border border-gray-300 hover:bg-gray-50
         py-3 rounded-xl text-gray-700 font-medium transition-all duration-200"
-        >
+        onClick={()=> signIn("google", {callbackUrl:"/"})}>
           <FcGoogle className="text-xl" />
           Continue with google
-        </button>
+        </div>
 
         <p
           className="text-gray-600 mt-6 text-sm flex items-center justify-center gap-1 cursor-pointer"

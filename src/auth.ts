@@ -57,7 +57,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           image:user.image
         })
        }
+       user.id = dbUser._id.toString()
+       user.role =dbUser.role
       }
+
+      return true
     },
      
 
