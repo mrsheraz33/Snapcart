@@ -1,6 +1,9 @@
 import { auth } from '@/auth'
+import AdminDashboard from '@/components/AdminDashboard'
+import DeliveyBoy from '@/components/DeliveyBoy'
 import EditRoleMobile from '@/components/EditRoleMobile'
 import Nav from '@/components/Nav'
+import UserDashboard from '@/components/UserDashboard'
 import connectDB from '@/lib/db'
 import User from '@/model/user.model'
 import { redirect } from 'next/navigation'
@@ -16,9 +19,14 @@ const inComplete = !user.mobile || !user.role || (!user.mobile && user.role==="u
 if(inComplete){
    return <EditRoleMobile/>
 }
+const plainUser = JSON.parse(JSON.stringify(user))
   return (
  <>
- <Nav user={user}/>
+ <Nav user={plainUser}/>
+ {
+  user.role == "user" ? (
+  <UserDashboard/>): user.role == "admin" ? (<AdminDashboard/>): <DeliveyBoy/>
+ }
  </>
   )
 }

@@ -4,7 +4,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   images:{
     remotePatterns:[
-      {hostname: "lh3.googleusercontent.com"}
+      {hostname: "lh3.googleusercontent.com"},
+      {hostname: "images.unsplash.com"},
+      {hostname: "plus.unsplash.com"},
+      {hostname: "media.istockphoto.com"},
     ]
   }
 };
