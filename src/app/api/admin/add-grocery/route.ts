@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({message: "Grocery successfully added!", grocery}, {status:200})
   } catch (error) {
+    console.log(error)
       return NextResponse.json({message:`Add grocery error ${error}`}, {status:500})
   }
 }
