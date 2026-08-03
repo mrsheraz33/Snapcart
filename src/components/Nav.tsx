@@ -19,6 +19,8 @@ import { AnimatePresence } from "motion/react";
 import { motion } from "motion/react";
 import { signOut } from "next-auth/react";
 import { createPortal } from "react-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface Iuser {
   _id?: mongoose.Types.ObjectId;
@@ -35,6 +37,7 @@ function Nav({ user }: { user: Iuser }) {
   const profileDropDown = useRef<HTMLDivElement>(null);
   const [searchBarOpen, setSearchBarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const {cartData} = useSelector((state:RootState)=> state.cart)
 
   const handelClickOutside = (e: MouseEvent) => {
     if (
@@ -183,7 +186,7 @@ onClick={async ()=> await signOut({callbackUrl:"/login"})}>
             </div>
 
             <Link
-              href={""}
+              href={"/user/cart"}
               className="relative bg-white rounded-full w-11 h-11 flex items-center justify-center
           shadow-md hover:scale-105 transition"
             >
@@ -192,7 +195,7 @@ onClick={async ()=> await signOut({callbackUrl:"/login"})}>
                 className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5
           flex items-center justify-center rounded-full font-semibold shadow"
               >
-                0
+                {cartData.length}
               </span>
             </Link>
           </>
