@@ -5,11 +5,17 @@ import { AnimatePresence, motion } from "motion/react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import Image from "next/image";
-import { decreaseQuantity, increaseQuantity, removeFromCart } from "@/redux/cartSlice";
+import {
+  decreaseQuantity,
+  increaseQuantity,
+  removeFromCart,
+} from "@/redux/cartSlice";
+import { useRouter } from "next/navigation";
 
 function CartPage() {
-  const { cartData } = useSelector((state: RootState) => state.cart);
-  const dispatch = useDispatch<AppDispatch>()
+  const { cartData, subTotal,   deliveryfee, finalTotal } = useSelector((state: RootState) => state.cart);
+  const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter()
   return (
     <div className="w-[95%] sm:w-[90%] md:w-[80%] mx-auto mt-8 mb-24 relative">
       <Link
@@ -88,51 +94,80 @@ transition-all inline-block font-medium"
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-center sm:justify-end gap-3 mt-3 sm:mt-0
-                    bg-gray-50 px-3 py-2 rounded-full">
-
-                
-
-                  <button
-                              className="w-7 h-7 flex items-center justify-center rounded-full bg-green-100
+                    <div
+                      className="flex items-center justify-center sm:justify-end gap-3 mt-3 sm:mt-0
+                    bg-gray-50 px-3 py-2 rounded-full"
+                    >
+                      <button
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-green-100
                                  hover:bg-green-200 transition-all"
-                                    onClick={()=> dispatch(decreaseQuantity(item._id))}
-                            >
-                              <Minus
-                                size={16}
-                                className="text-green-700"
-                               
-                              />
-                            </button>
-                            <span className="text-sm font-semibold text-gray-800">
-                         {item.quantity}
-                            </span>
-                            <button
-                              className="w-7 h-7 flex items-center justify-center rounded-full bg-green-100
+                        onClick={() => dispatch(decreaseQuantity(item._id))}
+                      >
+                        <Minus size={16} className="text-green-700" />
+                      </button>
+                      <span className="text-sm font-semibold text-gray-800">
+                        {item.quantity}
+                      </span>
+                      <button
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-green-100
                                  hover:bg-green-200 transition-all"
-                            onClick={()=> dispatch(increaseQuantity(item._id))}
-                            >
-                              <Plus size={16} className="text-green-700" />
-                            </button>
+                        onClick={() => dispatch(increaseQuantity(item._id))}
+                      >
+                        <Plus size={16} className="text-green-700" />
+                      </button>
                     </div>
 
-                    <button className="sm:ml-4 mt-3 sm:mt-0 text-red-500 hover:text-red-700 transition-all"
-                    onClick={()=> dispatch(removeFromCart(item._id))}><Trash2 size={18}/></button>
+                    <button
+                      className="sm:ml-4 mt-3 sm:mt-0 text-red-500 hover:text-red-700 transition-all"
+                      onClick={() => dispatch(removeFromCart(item._id))}
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </motion.div>
                 );
               })}
             </AnimatePresence>
           </div>
 
-<motion.div
-initial={{ opacity: 0, x: 30 }}
-animate={{ opacity: 1, x: 0 }}
-transition={{ duration: 0.3 }}
-className="bg-white rounded-full shadow-xl p-6 h-fit sticky top-24 border border-gray-100 flex flex-col">
-<h2 className="text-lg sm:text-xl font-bold text-green-800 mb-4">Order Summary</h2>
-</motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-xl shadow-xl p-6 h-fit sticky top-24 border border-gray-100 flex flex-col"
+          >
+            <h2 className="text-lg sm:text-xl font-bold text-green-800 mb-4">
+              Order Summary
+            </h2>
+            <div className="space-y-3 text-green-700 text-sm sm:text-base">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span className="text-green-700 font-semibold">RS.{subTotal}</span>
+              </div>
+
+       <div className="flex justify-between">
+                <span>Delivery Fee</span>
+                <span className="text-green-700 font-semibold">RS.{deliveryfee}</span>
+              </div>
+      <hr className="my-3"/>
 
 
+
+       <div className="flex justify-between font-bold text-lg sm:text-xl">
+                <span>Final Total</span>
+                <span className="text-green-700 font-semibold">RS.{finalTotal}</span>
+              </div>
+            </div>
+
+<motion.button
+onClick={()=> router.push("/user/checkout")}
+whileTap={{scale:0.95}}
+className="w-full mt-6 bg-green-600 text-white py-3 rounded-full hover:bg-green-700 transition-all font-semibold
+text-sm sm:text-base">
+Process to checkout
+</motion.button>
+
+
+          </motion.div>
         </div>
       )}
     </div>

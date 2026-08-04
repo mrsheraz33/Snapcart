@@ -10,10 +10,10 @@ const dispatch = useDispatch<AppDispatch>()
   useEffect(() => {
     const getMe = async () => {
       try {
-        const {data}= await axios.get("/api/me");
-       dispatch(setUserData(data))
-      console.log(data);
-      
+        const result = await axios.get("/api/me");
+        if (result.data?.user) {
+          dispatch(setUserData(result.data.user));
+        }
       } catch (error) {
         console.log(error);
       }
