@@ -3,12 +3,17 @@ import { RootState } from "@/redux/store";
 import {
   ArrowLeft,
   Building,
+  CreditCard,
+  CreditCardIcon,
   Home,
+  Loader2,
+  LocateFixed,
   MapPin,
   Navigation,
   Phone,
   PinIcon,
   Search,
+  Truck,
   User as UserIcon,
 } from "lucide-react";
 import { motion } from "motion/react";
@@ -17,6 +22,8 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import axios from "axios";
+import { OpenStreetMapProvider } from "leaflet-geosearch";
+import { BsStripe } from "react-icons/bs";
 import("leaflet/dist/leaflet.css");
 
 interface MapProps {
@@ -104,8 +111,10 @@ const DynamicInlineMap = dynamic(
 function Checkout() {
   const router = useRouter();
   const { userData } = useSelector((state: RootState) => state.user);
+  const { subTotal, deliveryfee, finalTotal , cartData} = useSelector(
+    (state: RootState) => state.cart,
+  );
 
-  // Initial State: Safe empty strings to avoid controlled-to-uncontrolled warning
   const [address, setAddress] = useState({
     fullname: "",
     mobile: "",
@@ -116,8 +125,10 @@ function Checkout() {
   });
 
   const [position, setPosition] = useState<[number, number] | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
 
-  // Sync Redux User Data
   useEffect(() => {
     if (userData) {
       setAddress((prev) => ({
@@ -147,29 +158,96 @@ function Checkout() {
   }, []);
 
   useEffect(() => {
-  const fetchedAddress = async () => {
-    if (!position) return;
+    const fetchedAddress = async () => {
+      if (!position) return;
 
-    try {
-      const result = await axios.get(
-        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position[0]}&longitude=${position[1]}&localityLanguage=en`
-      );
+      try {
+        const result = await axios.get(
+          `https://nominatim.openstreetmap.org/reverse?lat=${position[0]}&lon=${position[1]}&format=json`,
+        );
 
-      console.log("BigDataCloud Result:", result.data);
+        console.log("hello", result.data);
 
-      setAddress((prev) => ({
-        ...prev,
-        city: result.data.city || result.data.locality || "",
-        state: result.data.principalSubdivision || "",
-        pincode: result.data.postcode || "", 
-      }));
-    } catch (error) {
-      console.log("hello error", error);
+        setAddress((prev) => ({
+          ...prev,
+          city: result.data.address.district || result.data.address.city,
+          state: result.data.address.state,
+          pincode: result.data.address.postcode || "",
+          fullAddress: result.data.display_name,
+        }));
+      } catch (error) {
+        console.log("hello error", error);
+      }
+    };
+
+    fetchedAddress();
+  }, [position]);
+
+  const handelSearchQuery = async () => {
+    setSearchLoading(true);
+    const provider = new OpenStreetMapProvider();
+    const results = await provider.search({ query: searchQuery });
+    if (results) {
+      setSearchLoading(false);
+      setPosition([results[0].y, results[0].x]);
     }
   };
 
-  fetchedAddress();
-}, [position]);
+  const handelCurrentLocation = () => {
+    if (typeof window !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setPosition([latitude, longitude]);
+        },
+        (err) => {
+          console.warn("Location permission denied or error:", err.message);
+          // Fallback location to prevent map breaking
+          setPosition([31.5204, 74.3587]);
+        },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 },
+      );
+    }
+  };
+
+
+  const   handelCod = async ()=>{
+    if(!position) {
+      return null
+    }
+    try {
+      const  result = await axios.post("/api/user/order", {
+        userId:userData?._id,
+        items:cartData.map(item => (
+          {
+            grocery:item._id,
+            name:item.name,
+            price:item.price,
+            unit: item.unit,
+            quantity: item.quantity,
+            image:item.image
+          }
+        )),
+        totalAmount:finalTotal,
+        address:{
+          fullName: address.fullname,
+          mobile: address.mobile,
+          city: address.city,
+          state: address.state,
+          fullAddress:address.fullAddress,
+          pincode:address.pincode,
+          latitude:position[0],
+          longitude:position[1]
+        },
+        paymentMethod
+      })
+
+     router.push("/user/order-success")
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   return (
     <div className="w-[92%] md:w-[80%] mx-auto py-10 relative">
       <motion.button
@@ -301,7 +379,7 @@ function Checkout() {
                   onChange={(e) =>
                     setAddress((prev) => ({ ...prev, pincode: e.target.value }))
                   }
-                placeholder="Pincode (e.g. 57000)"
+                  placeholder="Pincode (e.g. 57000)"
                   className="pl-10 w-full border rounded-lg p-3 text-sm bg-gray-50 text-gray-800"
                 />
               </div>
@@ -310,19 +388,110 @@ function Checkout() {
             <div className="flex gap-2 mt-3">
               <input
                 type="text"
+                value={searchQuery}
                 placeholder="search city or area..."
                 className="flex-1 border rounded-lg p-3 text-sm focus:ring-2 focus:ring-green-500"
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <button className="bg-green-600 text-white px-5 rounded-lg hover:bg-green-700 transition-all font-medium">
-                Search
+              <button
+                className="bg-green-600 text-white px-5 rounded-lg
+               hover:bg-green-700 transition-all font-medium"
+                onClick={handelSearchQuery}
+              >
+                {searchLoading ? (
+                  <Loader2 className="animate-spin" size={16} />
+                ) : (
+                  "Search"
+                )}
               </button>
             </div>
 
             {/* Direct Map Rendering */}
             <div className="relative mt-6 h-80 rounded-xl overflow-hidden border border-gray-200 shadow-inner">
               <DynamicInlineMap position={position} setPosition={setPosition} />
+              <motion.button
+                whileTap={{ scale: 0.93 }}
+                className="absolute bottom-4 right-4 bg-green-600 text-white shadow-lg rounded-full p-3 hover:bg-green-700
+               not-only-of-type: transition-all flex items-center justify-center z-999"
+                onClick={handelCurrentLocation}
+              >
+                <LocateFixed size={22} />
+              </motion.button>
             </div>
           </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all
+        duration-300 p-6 border border-gray-100 h-fit"
+        >
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <CreditCard className="text-green-600" /> Payment Method
+          </h2>
+
+          <div className="space-y-4 mb-6">
+            <button
+              className={`flex items-center gap-3 w-full border rounded-lg p-3 
+            transition-all ${
+              paymentMethod === "online"
+                ? "border-green-600 bg-green-50 shadow-sm"
+                : "hover:bg-gray-50"
+            }`}
+              onClick={() => setPaymentMethod("online")}
+            >
+              <CreditCardIcon className="text-green-600" />{" "}
+              <span className="font-medium text-gray-700">
+                Pay Online (stripe)
+              </span>
+            </button>
+
+            <button
+              className={`flex items-center gap-3 w-full border rounded-lg p-3 
+            transition-all ${
+              paymentMethod === "cod"
+                ? "border-green-600 bg-green-50 shadow-sm"
+                : "hover:bg-gray-50"
+            }`}
+              onClick={() => setPaymentMethod("cod")}
+            >
+              <Truck className="text-green-600" />
+              <span className="font-medium text-gray-700">
+                Cash on Delivery
+              </span>
+            </button>
+          </div>
+
+          <div className="border-t pt-4 text-gray-700 space-y-2 text-sm sm:text-base">
+            <div className="flex justify-between">
+              <span className="font-semibold">Subtotal</span>
+              <span className="font-semibold text-green-600">RS.{subTotal}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-semibold">Delivery Fee</span>
+              <span className="font-semibold text-green-600">RS.{deliveryfee}</span>
+            </div>
+            <div className="flex justify-between font-bold text-lg border-t pt-3">
+              <span>Final Total</span>
+              <span className="text-green-600">RS.{finalTotal}</span>
+            </div>
+          </div>
+
+          <motion.button
+          whileTap={{scale:0.93}}
+          className="w-full mt-6 bg-green-600 text-white py-3 rounded-full hover:bg-green-700 transition-all
+          font-semibold"
+          onClick={()=>{
+            if(paymentMethod === "cod"){
+              handelCod()
+            }else{
+             null
+            }
+          }}>
+            {paymentMethod == "cod" ? "Place Order" : "Pay & Place Order"}
+          </motion.button>
         </motion.div>
       </div>
     </div>
