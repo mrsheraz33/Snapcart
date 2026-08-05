@@ -248,6 +248,42 @@ function Checkout() {
     }
   }
 
+  const  handelOnlinePayment = async ()=>{
+      if(!position) {
+      return null
+    }
+try {
+  const result = await axios.post("/api/user/payment",  {
+        userId:userData?._id,
+        items:cartData.map(item => (
+          {
+            grocery:item._id,
+            name:item.name,
+            price:item.price,
+            unit: item.unit,
+            quantity: item.quantity,
+            image:item.image
+          }
+        )),
+        totalAmount:finalTotal,
+        address:{
+          fullName: address.fullname,
+          mobile: address.mobile,
+          city: address.city,
+          state: address.state,
+          fullAddress:address.fullAddress,
+          pincode:address.pincode,
+          latitude:position[0],
+          longitude:position[1]
+        },
+        paymentMethod
+      })
+      window.location.href = result.data.url
+} catch (error) {
+  console.log(error)
+}
+  }
+
   return (
     <div className="w-[92%] md:w-[80%] mx-auto py-10 relative">
       <motion.button
@@ -487,7 +523,7 @@ function Checkout() {
             if(paymentMethod === "cod"){
               handelCod()
             }else{
-             null
+            handelOnlinePayment()
             }
           }}>
             {paymentMethod == "cod" ? "Place Order" : "Pay & Place Order"}
