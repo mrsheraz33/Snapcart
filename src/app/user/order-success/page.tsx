@@ -108,7 +108,7 @@ function OrderSuccess() {
           className="space-y-3"
         >
           <Link
-            href="/user/my-orders"
+            href="/user/my-order"
             className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-emerald-600/20 active:scale-[0.98]"
           >
             <span>Track Order</span>
