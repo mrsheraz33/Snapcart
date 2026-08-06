@@ -1,26 +1,35 @@
 "use client";
 import { IOrder } from "@/model/order.model";
 import axios from "axios";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import {motion} from "motion/react"
+import UserOrderCart from "@/components/UserOrderCart";
 
 function MyOrder() {
   const router = useRouter();
   const [order, setOrder] = useState<IOrder[]>();
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const getMyorders = async () => {
       try {
         const result = await axios.get("/api/user/my-orders");
         setOrder(result.data);
+        setLoading(false)
       } catch (error) {
         console.log(error);
       }
     };
     getMyorders();
   }, []);
+
+  if(loading){
+    return  <div className="flex items-center justify-center min-h-[50vh] font-medium animate-pulse">
+        Loading Your Orders...
+      </div>
+  } 
 
   return (
     <div className="bg-linear-to-b from-gray-100 min-h-screen w-full">
@@ -36,6 +45,32 @@ function MyOrder() {
             <h1 className="text-xl font-bold text-gray-800">My Orders</h1>
           </div>
         </div>
+
+        {order?.length === 0 ?  (
+          <div className="pt-20 flex flex-col items-center text-center">
+            <Package size={70} className="text-green-600 mb-4"/>
+       <h2 className="text-xl font-semibold text-gray-700">No Orders Found</h2>
+       <p className="text-gray-500 text-sm mt-1">Start shoping to view your orders here.</p>
+          </div>
+        ) : (<div className="mt-4 space-y-6">
+      {order?.map((order, index)=>{
+        return <motion.div
+          initial={{
+            opacity: 0,
+            y:20
+          }}
+          animate={{
+            opacity: 1,
+            y:0
+          }}
+          transition={{
+            duration: 0.4,
+          }}
+           key={index}>
+          <UserOrderCart order={order}/>
+          </motion.div>
+      })}
+        </div>)}
       </div>
     </div>
   );
