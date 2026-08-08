@@ -38,12 +38,14 @@ function ManageOrder() {
           </div>
         </div>
 
-
-<div className="space-y-6">
+<div className="max-w-6xl mx-auto px-4 pt-24 pb-16 space-y-8">
+    <div className="space-y-6">
 {orders?.map((order, index)=>(
-    <AdminOrderCard order={order} key={index}/>
+    <AdminOrderCard order={order} key={index}/>                                                                                                                                                                                        
 ))}
+</div> 
 </div>
+
     </div>
   )
 }
