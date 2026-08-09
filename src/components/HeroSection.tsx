@@ -4,8 +4,6 @@ import { Leaf, Truck, Smartphone, ShoppingBasket } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import { motion } from "motion/react";
 import Image from "next/image";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/redux/store";
 
 function HeroSection() {
   const slides = [
@@ -41,8 +39,6 @@ function HeroSection() {
     },
   ];
   const [current, setCurrent] = useState(0);
-  const {userData} =useSelector((state:RootState)=> state.user)
-
 
   useEffect(() => {
     const timer = setInterval(() => {
