@@ -1,4 +1,5 @@
 import { IOrder } from "@/model/order.model";
+import axios from "axios";
 import {
   Package,
   User,
@@ -16,6 +17,21 @@ import { useState } from "react";
 function AdminOrderCard({ order }: { order: IOrder }) {
   const statusOptions = ["pending", "out of delivery"];
   const [expanded, setExpanded] = useState(false);
+  const [status, setStatus] = useState<string>(order.status)
+
+const updateStatus = async (orderId:string , status:string)=>{
+try {
+  const result = await axios.post(`/api/admin/update-order-status/${orderId}`, {status})
+    console.log(result.data);
+    setStatus(status)
+} catch (error) {
+  console.log(error);
+  
+}
+}
+
+
+
   return (
     <motion.div
       initial={{
@@ -80,19 +96,20 @@ function AdminOrderCard({ order }: { order: IOrder }) {
         <div className="flex flex-col items-start md:items-end gap-2">
           <span
             className={`text-xs font-semibold px-3 py-1 rounded-full capitalize ${
-              order.status === "delivered"
+            status === "delivered"
                 ? "bg-green-100 text-green-700"
-                : order.status === "pending"
+                : status === "pending"
                   ? "bg-yellow-100 text-yellow-700"
                   : "bg-blue-100 text-blue-700"
             }`}
           >
-            {order.status}
+            {status}
           </span>
           <select
             className="border border-gray-300 rounded-lg px-3 py-1 text-sm shadow-sm
           hover:border-green-400 focus:ring-2 transition focus:ring-green-500 outline-none"
-          >
+          onChange={(e)=> updateStatus(order._id?.toString()!, e.target.value)}
+          value={status}>
             {statusOptions.map((st) => (
               <option key={st} value={st}>
                 {st.toUpperCase()}
@@ -177,7 +194,7 @@ function AdminOrderCard({ order }: { order: IOrder }) {
           <Truck className="text-green-600" size={16} />
           <span>
             Delivery:
-            <span className="text-green-700 font-semibold">{order.status}</span>
+            <span className="text-green-700 font-semibold">{status}</span>
           </span>
         </div>
 
