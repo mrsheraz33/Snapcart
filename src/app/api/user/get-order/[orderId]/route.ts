@@ -1,0 +1,22 @@
+import connectDB from "@/lib/db";
+import Order from "@/model/order.model";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function GET(req:NextRequest, {params}:{params: Promise<{orderId:string}>}){
+    try {
+        await connectDB()
+
+        const {orderId }= await params
+        console.log(orderId)
+        const order = await Order.findById(orderId).populate("assignedDeliveryBoy")
+      console.log("order founded", order)
+
+        if(!order){
+            return NextResponse.json({message: "order not found"}, {status:400})
+        }
+
+           return NextResponse.json(order, {status:200})
+    } catch (error) {
+           return NextResponse.json({message: `get order by id error ${error}`}, {status:500})
+    }
+}

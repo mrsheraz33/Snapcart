@@ -1,5 +1,6 @@
 "use client";
-import { IOrder } from "@/model/order.model";
+import { getSocket } from "@/lib/socket";
+import { Iuser } from "@/model/user.model";
 import {
   BikeIcon,
   ChevronDown,
@@ -7,14 +8,53 @@ import {
   CreditCard,
   MapPin,
   Package,
+  PhoneCallIcon,
   Truck,
+  UserCheck,
 } from "lucide-react";
+import mongoose from "mongoose";
 import { motion } from "motion/react";
 import Image from "next/image";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+interface IOrder {
+  _id?: mongoose.Types.ObjectId;
+  user: mongoose.Types.ObjectId;
+  items: [
+    {
+      grocery: mongoose.Types.ObjectId;
+      name: string;
+      price: string;
+      unit: string;
+      image: string;
+      quantity: number;
+    },
+  ];
+  isPaid: boolean;
+  totalAmount: number;
+  paymentMethod: "cod" | "online";
+  address: {
+    fullName: string;
+    mobile: string;
+    city: string;
+    state: string;
+    pincode: string;
+    fullAddress: string;
+    latitude: string;
+    longitude: string;
+  };
+  assignment?: mongoose.Types.ObjectId;
+  assignedDeliveryBoy?: Iuser;
+  status: "pending" | "out of delivery" | "delivered";
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 function UserOrderCart({ order }: { order: IOrder }) {
   const [expanded, setExpanded] = useState(false);
+  const [status, setStatus] = useState(order.status);
+  const router = useRouter()
 
   const getStatuColor = (status: string) => {
     switch (status) {
@@ -29,6 +69,17 @@ function UserOrderCart({ order }: { order: IOrder }) {
         return "bg-gray-100 text-gray-600 border-gray-300";
     }
   };
+
+  useEffect((): any => {
+    const socket = getSocket();
+    socket.on("order-status-update", (data) => {
+      if (data.orderId.toString() == order?._id!.toString()) {
+        setStatus(data.status);
+      }
+    });
+
+    return () => socket.off("order-status-update");
+  }, []);
 
   return (
     <motion.div
@@ -74,9 +125,9 @@ function UserOrderCart({ order }: { order: IOrder }) {
           </span>
 
           <span
-            className={`px-3 py-1 text-xs font-semibold border rounded-full ${getStatuColor(order.status)}`}
+            className={`px-3 py-1 text-xs font-semibold border rounded-full ${getStatuColor(status)}`}
           >
-            {order.status}
+            {status}
           </span>
         </div>
       </div>
@@ -94,6 +145,39 @@ function UserOrderCart({ order }: { order: IOrder }) {
           </div>
         )}
 
+        {order.assignedDeliveryBoy && (
+          <>
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3 text-sm text-gray-700">
+                <UserCheck className="text-blue-600" size={18} />
+                <div className="font-semibold text-gray-800">
+                  <p>
+                    Assigned to : <span>{order.assignedDeliveryBoy.name}</span>
+                  </p>
+                  <p className="text-xs text-gray-600 flex gap-2">
+                    <PhoneCallIcon size={15} className="text-red-600" /> +92{" "}
+                    {order.assignedDeliveryBoy.mobile}
+                  </p>
+                </div>
+              </div>
+
+              <a
+                href={`tel:${order.assignedDeliveryBoy.mobile}`}
+                className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-700 transition"
+              >
+                Call
+              </a>
+            </div>
+
+            <button
+              className="w-full flex items-baseline justify-center gap-2 bg-green-600
+           text-white font-semibold px-4 py-2 rounded-xl shadow hover:bg-green-700 transition"
+            onClick={()=> router.push(`/user/track-order/${order._id?.toString()}`)}>
+              <Truck size={18} /> Track Your Order
+            </button>
+          </>
+        )}
+
         <div className="flex items-center gap-2 text-gray-700 text-sm">
           <MapPin size={16} className="text-green-600" />
           <span className="truncate">{order.address.fullAddress}</span>
@@ -102,7 +186,7 @@ function UserOrderCart({ order }: { order: IOrder }) {
         <div className="border-t border-gray-200 pt-3">
           <button
             className="w-full flex justify-between items-center text-sm font-medium
-text-gray-700 hover:text-green-700 transition"
+          text-gray-700 hover:text-green-700 transition"
             onClick={() => setExpanded((prev) => !prev)}
           >
             <span className="flex items-center gap-2">
@@ -173,12 +257,18 @@ text-gray-700 hover:text-green-700 transition"
  text-gray-800"
         >
           <div className="flex items-center gap-2 text-gray-700 text-sm">
-            <Truck className="text-green-600" size={16}/>
-            <span>Delivery:<span className="text-green-700 font-semibold">{order.status}</span></span>
+            <Truck className="text-green-600" size={16} />
+            <span>
+              Delivery:
+              <span className="text-green-700 font-semibold">{status}</span>
+            </span>
           </div>
 
           <div>
-            Total : <span className="text-green-700 font-bold">RS.{order.totalAmount}</span>
+            Total :{" "}
+            <span className="text-green-700 font-bold">
+              RS.{order.totalAmount}
+            </span>
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ type IGeoLocation = {
   coordinates: [number, number];
 };
 
-interface Iuser {
+export interface Iuser {
   _id?: mongoose.Types.ObjectId;
   name: string;
   email: string;
