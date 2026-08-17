@@ -1,3 +1,4 @@
+import { getSocket } from "@/lib/socket";
 import { Iuser } from "@/model/user.model";
 import axios from "axios";
 import {
@@ -72,6 +73,19 @@ useEffect(()=>{
 setStatus(order.status)
 },[order])
 
+
+  useEffect((): any => {
+    const socket = getSocket();
+    socket.on("order-status-update", (data) => {
+      if (data.orderId.toString() == order?._id!.toString()) {
+        setStatus(data.status);
+      }
+    });
+
+    return () => socket.off("order-status-update");
+  }, []);
+
+
   return (
     <motion.div
       initial={{
@@ -94,7 +108,9 @@ setStatus(order.status)
             <Package size={20} />
             Order #{order._id?.toString().slice(-6)}
           </p>
-          <span
+
+ {status !== "delivered" && 
+  <span
             className={`inline-block text-xs font-semibold px-3 py-1 rounded-full border ${
               order.isPaid
                 ? "bg-green-100 text-green-700 border-green-300"
@@ -103,6 +119,10 @@ setStatus(order.status)
           >
             {order.isPaid ? "Paid" : "Unpaid"}
           </span>
+ }
+
+          
+         
           <p className="text-gray-500 text-sm">
             {new Date(order.createdAt!).toLocaleDateString()}
           </p>
@@ -162,7 +182,10 @@ className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-7
           >
             {status}
           </span>
-          <select
+
+
+ {status !== "delivered" &&  
+      <select
             className="border border-gray-300 rounded-lg px-3 py-1 text-sm shadow-sm
           hover:border-green-400 focus:ring-2 transition focus:ring-green-500 outline-none"
           onChange={(e)=> updateStatus(order._id?.toString()!, e.target.value)}
@@ -173,6 +196,9 @@ className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-7
               </option>
             ))}
           </select>
+ }
+
+     
         </div>
       </div>
 

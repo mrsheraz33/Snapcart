@@ -12,7 +12,6 @@ import {
   Navigation,
   Phone,
   PinIcon,
-  Search,
   Truck,
   User as UserIcon,
 } from "lucide-react";
@@ -22,9 +21,6 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import axios from "axios";
-import { OpenStreetMapProvider } from "leaflet-geosearch";
-import { BsStripe } from "react-icons/bs";
-import("leaflet/dist/leaflet.css");
 
 interface MapProps {
   position: [number, number] | null;
@@ -111,7 +107,7 @@ const DynamicInlineMap = dynamic(
 function Checkout() {
   const router = useRouter();
   const { userData } = useSelector((state: RootState) => state.user);
-  const { subTotal, deliveryfee, finalTotal , cartData} = useSelector(
+  const { subTotal, deliveryfee, finalTotal, cartData } = useSelector(
     (state: RootState) => state.cart,
   );
 
@@ -149,7 +145,6 @@ function Checkout() {
         },
         (err) => {
           console.warn("Location permission denied or error:", err.message);
-          // Fallback location to prevent map breaking
           setPosition([31.5204, 74.3587]);
         },
         { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 },
@@ -166,17 +161,19 @@ function Checkout() {
           `https://nominatim.openstreetmap.org/reverse?lat=${position[0]}&lon=${position[1]}&format=json`,
         );
 
-        console.log("hello", result.data);
-
         setAddress((prev) => ({
           ...prev,
-          city: result.data.address.district || result.data.address.city,
-          state: result.data.address.state,
+          city:
+            result.data.address.district ||
+            result.data.address.city ||
+            result.data.address.town ||
+            "",
+          state: result.data.address.state || "",
           pincode: result.data.address.postcode || "",
-          fullAddress: result.data.display_name,
+          fullAddress: result.data.display_name || "",
         }));
       } catch (error) {
-        console.log("hello error", error);
+        console.log("Reverse geocoding error:", error);
       }
     };
 
@@ -184,12 +181,21 @@ function Checkout() {
   }, [position]);
 
   const handelSearchQuery = async () => {
+    if (!searchQuery) return;
     setSearchLoading(true);
-    const provider = new OpenStreetMapProvider();
-    const results = await provider.search({ query: searchQuery });
-    if (results) {
+    try {
+      // Dynamic import to prevent SSR 'window is not defined' error
+      const { OpenStreetMapProvider } = await import("leaflet-geosearch");
+      const provider = new OpenStreetMapProvider();
+      const results = await provider.search({ query: searchQuery });
+
+      if (results && results.length > 0) {
+        setPosition([results[0].y, results[0].x]);
+      }
+    } catch (error) {
+      console.log("Search error:", error);
+    } finally {
       setSearchLoading(false);
-      setPosition([results[0].y, results[0].x]);
     }
   };
 
@@ -202,7 +208,6 @@ function Checkout() {
         },
         (err) => {
           console.warn("Location permission denied or error:", err.message);
-          // Fallback location to prevent map breaking
           setPosition([31.5204, 74.3587]);
         },
         { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 },
@@ -210,79 +215,70 @@ function Checkout() {
     }
   };
 
-
-  const   handelCod = async ()=>{
-    if(!position) {
-      return null
-    }
+  const handelCod = async () => {
+    if (!position) return null;
     try {
-      const  result = await axios.post("/api/user/order", {
-        userId:userData?._id,
-        items:cartData.map(item => (
-          {
-            grocery:item._id,
-            name:item.name,
-            price:item.price,
-            unit: item.unit,
-            quantity: item.quantity,
-            image:item.image
-          }
-        )),
-        totalAmount:finalTotal,
-        address:{
+      await axios.post("/api/user/order", {
+        userId: userData?._id,
+        items: cartData.map((item: any) => ({
+          grocery: item._id,
+          name: item.name,
+          price: item.price,
+          unit: item.unit,
+          quantity: item.quantity,
+          image: item.image,
+        })),
+        totalAmount: finalTotal,
+        address: {
           fullName: address.fullname,
           mobile: address.mobile,
           city: address.city,
           state: address.state,
-          fullAddress:address.fullAddress,
-          pincode:address.pincode,
-          latitude:position[0],
-          longitude:position[1]
+          fullAddress: address.fullAddress,
+          pincode: address.pincode,
+          latitude: position[0],
+          longitude: position[1],
         },
-        paymentMethod
-      })
+        paymentMethod,
+      });
 
-     router.push("/user/order-success")
+      router.push("/user/order-success");
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-  }
+  };
 
-  const  handelOnlinePayment = async ()=>{
-      if(!position) {
-      return null
-    }
-try {
-  const result = await axios.post("/api/user/payment",  {
-        userId:userData?._id,
-        items:cartData.map(item => (
-          {
-            grocery:item._id,
-            name:item.name,
-            price:item.price,
-            unit: item.unit,
-            quantity: item.quantity,
-            image:item.image
-          }
-        )),
-        totalAmount:finalTotal,
-        address:{
+  const handelOnlinePayment = async () => {
+    if (!position) return null;
+    try {
+      const result = await axios.post("/api/user/payment", {
+        userId: userData?._id,
+        items: cartData.map((item: any) => ({
+          grocery: item._id,
+          name: item.name,
+          price: item.price,
+          unit: item.unit,
+          quantity: item.quantity,
+          image: item.image,
+        })),
+        totalAmount: finalTotal,
+        address: {
           fullName: address.fullname,
           mobile: address.mobile,
           city: address.city,
           state: address.state,
-          fullAddress:address.fullAddress,
-          pincode:address.pincode,
-          latitude:position[0],
-          longitude:position[1]
+          fullAddress: address.fullAddress,
+          pincode: address.pincode,
+          latitude: position[0],
+          longitude: position[1],
         },
-        paymentMethod
-      })
-      window.location.href = result.data.url
-} catch (error) {
-  console.log(error)
-}
-  }
+        paymentMethod,
+      });
+      window.location.href = result.data.url;
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="w-[92%] md:w-[80%] mx-auto py-10 relative">
@@ -316,7 +312,6 @@ try {
           </h2>
 
           <div className="space-y-4">
-            {/* Full Name */}
             <div className="relative">
               <UserIcon
                 className="absolute left-3 top-3 text-green-600"
@@ -333,7 +328,6 @@ try {
               />
             </div>
 
-            {/* Mobile */}
             <div className="relative">
               <Phone
                 className="absolute left-3 top-3 text-green-600"
@@ -350,7 +344,6 @@ try {
               />
             </div>
 
-            {/* Full Address */}
             <div className="relative">
               <Home
                 className="absolute left-3 top-3 text-green-600"
@@ -370,7 +363,6 @@ try {
               />
             </div>
 
-            {/* City / State / Pincode */}
             <div className="grid grid-cols-3 gap-3">
               <div className="relative">
                 <Building
@@ -413,7 +405,10 @@ try {
                   type="text"
                   value={address.pincode || ""}
                   onChange={(e) =>
-                    setAddress((prev) => ({ ...prev, pincode: e.target.value }))
+                    setAddress((prev) => ({
+                      ...prev,
+                      pincode: e.target.value,
+                    }))
                   }
                   placeholder="Pincode (e.g. 57000)"
                   className="pl-10 w-full border rounded-lg p-3 text-sm bg-gray-50 text-gray-800"
@@ -430,8 +425,7 @@ try {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <button
-                className="bg-green-600 text-white px-5 rounded-lg
-               hover:bg-green-700 transition-all font-medium"
+                className="bg-green-600 text-white px-5 rounded-lg hover:bg-green-700 transition-all font-medium"
                 onClick={handelSearchQuery}
               >
                 {searchLoading ? (
@@ -442,13 +436,14 @@ try {
               </button>
             </div>
 
-            {/* Direct Map Rendering */}
             <div className="relative mt-6 h-80 rounded-xl overflow-hidden border border-gray-200 shadow-inner">
-              <DynamicInlineMap position={position} setPosition={setPosition} />
+              <DynamicInlineMap
+                position={position}
+                setPosition={setPosition}
+              />
               <motion.button
                 whileTap={{ scale: 0.93 }}
-                className="absolute bottom-4 right-4 bg-green-600 text-white shadow-lg rounded-full p-3 hover:bg-green-700
-               not-only-of-type: transition-all flex items-center justify-center z-999"
+                className="absolute bottom-4 right-4 bg-green-600 text-white shadow-lg rounded-full p-3 hover:bg-green-700 transition-all flex items-center justify-center z-[400]"
                 onClick={handelCurrentLocation}
               >
                 <LocateFixed size={22} />
@@ -461,8 +456,7 @@ try {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
-          className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all
-        duration-300 p-6 border border-gray-100 h-fit"
+          className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 h-fit"
         >
           <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <CreditCard className="text-green-600" /> Payment Method
@@ -470,12 +464,11 @@ try {
 
           <div className="space-y-4 mb-6">
             <button
-              className={`flex items-center gap-3 w-full border rounded-lg p-3 
-            transition-all ${
-              paymentMethod === "online"
-                ? "border-green-600 bg-green-50 shadow-sm"
-                : "hover:bg-gray-50"
-            }`}
+              className={`flex items-center gap-3 w-full border rounded-lg p-3 transition-all ${
+                paymentMethod === "online"
+                  ? "border-green-600 bg-green-50 shadow-sm"
+                  : "hover:bg-gray-50"
+              }`}
               onClick={() => setPaymentMethod("online")}
             >
               <CreditCardIcon className="text-green-600" />{" "}
@@ -485,12 +478,11 @@ try {
             </button>
 
             <button
-              className={`flex items-center gap-3 w-full border rounded-lg p-3 
-            transition-all ${
-              paymentMethod === "cod"
-                ? "border-green-600 bg-green-50 shadow-sm"
-                : "hover:bg-gray-50"
-            }`}
+              className={`flex items-center gap-3 w-full border rounded-lg p-3 transition-all ${
+                paymentMethod === "cod"
+                  ? "border-green-600 bg-green-50 shadow-sm"
+                  : "hover:bg-gray-50"
+              }`}
               onClick={() => setPaymentMethod("cod")}
             >
               <Truck className="text-green-600" />
@@ -503,11 +495,15 @@ try {
           <div className="border-t pt-4 text-gray-700 space-y-2 text-sm sm:text-base">
             <div className="flex justify-between">
               <span className="font-semibold">Subtotal</span>
-              <span className="font-semibold text-green-600">RS.{subTotal}</span>
+              <span className="font-semibold text-green-600">
+                RS.{subTotal}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="font-semibold">Delivery Fee</span>
-              <span className="font-semibold text-green-600">RS.{deliveryfee}</span>
+              <span className="font-semibold text-green-600">
+                RS.{deliveryfee}
+              </span>
             </div>
             <div className="flex justify-between font-bold text-lg border-t pt-3">
               <span>Final Total</span>
@@ -516,17 +512,17 @@ try {
           </div>
 
           <motion.button
-          whileTap={{scale:0.93}}
-          className="w-full mt-6 bg-green-600 text-white py-3 rounded-full hover:bg-green-700 transition-all
-          font-semibold"
-          onClick={()=>{
-            if(paymentMethod === "cod"){
-              handelCod()
-            }else{
-            handelOnlinePayment()
-            }
-          }}>
-            {paymentMethod == "cod" ? "Place Order" : "Pay & Place Order"}
+            whileTap={{ scale: 0.93 }}
+            className="w-full mt-6 bg-green-600 text-white py-3 rounded-full hover:bg-green-700 transition-all font-semibold"
+            onClick={() => {
+              if (paymentMethod === "cod") {
+                handelCod();
+              } else {
+                handelOnlinePayment();
+              }
+            }}
+          >
+            {paymentMethod === "cod" ? "Place Order" : "Pay & Place Order"}
           </motion.button>
         </motion.div>
       </div>

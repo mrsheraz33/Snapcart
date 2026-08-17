@@ -56,7 +56,7 @@ function LiveMap({ userLocation, deliveryBoyLocation }: IProps) {
       : [];
 
   return (
-    <div className="w-full h-125 rounded-xl overflow-hidden shadow relative">
+    <div className="w-full h-125 rounded-xl overflow-hidden shadow relative z-2">
       <MapContainer
         center={center as LatLngExpression}
         zoom={13}

@@ -114,6 +114,7 @@ function UserOrderCart({ order }: { order: IOrder }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+        {status !== "delivered" &&  
           <span
             className={`px-3 py-1 text-xs font-semibold rounded-full border ${
               order.isPaid
@@ -123,6 +124,7 @@ function UserOrderCart({ order }: { order: IOrder }) {
           >
             {order.isPaid ? "Paid" : "Unpaid"}
           </span>
+        }
 
           <span
             className={`px-3 py-1 text-xs font-semibold border rounded-full ${getStatuColor(status)}`}
@@ -132,7 +134,8 @@ function UserOrderCart({ order }: { order: IOrder }) {
         </div>
       </div>
 
-      <div className="p-5 space-y-4">
+ {status !== "delivered" && 
+    <div className="p-5 space-y-4">
         {order.paymentMethod === "cod" ? (
           <div className="flex items-center gap-2 text-gray-700 text-sm">
             <BikeIcon className="text-green-700" size={16} />
@@ -272,6 +275,8 @@ function UserOrderCart({ order }: { order: IOrder }) {
           </div>
         </div>
       </div>
+ }
+
     </motion.div>
   );
 }

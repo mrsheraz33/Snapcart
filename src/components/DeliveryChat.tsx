@@ -1,10 +1,10 @@
 import { getSocket } from '@/lib/socket'
 import { IMessage } from '@/model/message.model'
 import axios from 'axios'
-import { Send } from 'lucide-react'
+import { Send ,Sparkle, Loader} from 'lucide-react'
 import mongoose from 'mongoose'
 import { AnimatePresence } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from "motion/react";
 
 type Props={
@@ -15,12 +15,23 @@ type Props={
 function DeliveryChat({orderId, deliveryBoyId}:Props) {
     const [newMessage, setNewMessage] =useState("")
     const [messages , setMessages]= useState<IMessage[]>()
+    const chatBoxRef  = useRef<HTMLDivElement>(null)
+    const [suggestions, setSuggestions]= useState([])
+    const [loading, setLoading] =useState(false)
 
-useEffect(()=>{
+useEffect(():any =>{
  const socket = getSocket()
  socket.emit("join-room", orderId)
-},[])
 
+ socket.on("send-message", (message)=>{
+    if(message.roomId === orderId){
+       setMessages(prev => [...prev!, message])
+    }
+ })
+
+  return ()=> socket.off("send-message")
+
+},[])
 
 const sendMsg =()=>{
  const socket = getSocket()
@@ -35,15 +46,9 @@ const sendMsg =()=>{
 
  }
  socket.emit("send-message", message)
- socket.on("send-message", (message)=>{
-    if(message.roomId === orderId){
-       setMessages(prev => [...prev!, message])
-    }
-   
- })
+
  setNewMessage("")
 }
-
 
 useEffect(()=>{
 const getAllMessages = async ()=>{
@@ -57,14 +62,71 @@ const getAllMessages = async ()=>{
  getAllMessages()
 },[])
 
+useEffect(()=>{
+
+chatBoxRef.current?.scrollTo({
+    top:chatBoxRef.current.scrollHeight,
+    behavior:"smooth"
+})
+
+},[messages])
+
+
+
+  const getSuggestion = async ()=>{
+    setLoading(true)
+    const lastMessage = messages?.filter(m=> m.senderId !== deliveryBoyId)?.at(-1)
+    try {
+      const result = await axios.post("/api/chat/ai-suggestion",{
+message:lastMessage?.text , role: "delivery boy"
+      })
+    setSuggestions(result.data)
+    setLoading(false)
+    } catch (error) {
+      console.log(error)
+      setLoading(false)
+    }
+  }
+
+
+
+
   return (
     <div className="bg-white rounded-3xl shadow-lg border p-4 h-107 flex flex-col">
 
-<div className="flex-1 overflow-y-auto p-2 space-y-3">
+
+<div className='flex justify-between items-center mb-3'>
+<span>Quick Replies</span>
+<motion.button
+disabled={loading}
+whileTap={{scale:0.9}}
+className="px-3 py-1 text-xs flex items-center gap-1 bg-purple-100 text-purple-700
+rounded-full shadow-sm border border-purple-200 cursor-pointer"
+    onClick={getSuggestion}>
+    <Sparkle size={14}/>{loading ? <Loader className="w-5 h-5 animate-spin"/> :'AI Suggest'}
+    </motion.button>
+</div>
+
+
+<div className='flex gap-2 flex-wrap mb-3'>
+{
+    suggestions.map((s , i)=>(
+        <motion.div
+        whileTap={{scale:0.92}}
+        className='px-3 py-1 text-xs bg-green-50 border border-green-200 text-green-700 rounded-full cursor-pointer'
+        onClick={()=> setNewMessage(s)}
+        key={i}>
+            {s}
+        </motion.div>
+    ))
+}
+</div>
+
+<div className="flex-1 overflow-y-auto p-2 space-y-3" ref={chatBoxRef}>
 <AnimatePresence>
     {messages?.map((msg, index)=>(
         <motion.div
-        key={msg._id?.toString()}
+        key={index}
          initial={{
                   opacity: 0,
                   y: 15,

@@ -14,13 +14,14 @@ import {
 import mongoose from "mongoose";
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { motion } from "motion/react";
 import { signOut } from "next-auth/react";
 import { createPortal } from "react-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { useRouter } from "next/navigation";
 
 interface Iuser {
   _id?: mongoose.Types.ObjectId;
@@ -38,6 +39,9 @@ function Nav({ user }: { user: Iuser }) {
   const [searchBarOpen, setSearchBarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { cartData } = useSelector((state: RootState) => state.cart);
+  const [search, setSearch]= useState("")
+
+  const router = useRouter()
 
   const handelClickOutside = (e: MouseEvent) => {
     if (
@@ -52,6 +56,19 @@ function Nav({ user }: { user: Iuser }) {
 
     return () => document.removeEventListener("mousedown", handelClickOutside);
   }, []);
+
+const handelSearch =(e:FormEvent)=>{
+  e.preventDefault()
+  const query = search.trim()
+  if(!query){
+  return router.push("/")
+  }
+
+  router.push(`/?q=${encodeURIComponent(query)}`)
+setSearch("")
+setSearchBarOpen(false)
+}
+
 
   const sideBar = menuOpen
     ? createPortal(
@@ -117,7 +134,7 @@ function Nav({ user }: { user: Iuser }) {
                 <PlusCircle className="w-5 h-5 " /> Add Grocery
               </Link>
               <Link
-                href={""}
+                href={"/admin/view-grocery"}
                 className="flex items-center gap-3 p-3 rounded-lg bg-white/10 hover:bg-white/20
                 hover:pl-4 transition-all"
               >
@@ -161,6 +178,7 @@ transition-all"
       </Link>
       {user.role === "user" && (
         <form
+        onSubmit={handelSearch}
           className="hidden md:flex items-center bg-white rounded-full
       px-4 py-2 w-1/2 max-w-lg shadow-md"
         >
@@ -170,7 +188,8 @@ transition-all"
             placeholder="Search groceries..."
             className="w-full outline-none text-gray-700
       placeholder-gray-400"
-          />
+      value={search}
+          onChange={(e)=> setSearch(e.target.value)}/>
         </form>
       )}
       <div className="flex items-center gap-3 md:gap-6 relative">
@@ -211,7 +230,7 @@ transition-all"
                 <PlusCircle className="w-5 h-5 " /> Add Grocery
               </Link>
               <Link
-                href={""}
+                href={"/admin/view-grocery"}
                 className="flex items-center gap-2 bg-white text-green-700 font-semibold
           px-4 py-2 rounded-full hover:bg-green-100 transition-all"
               >
@@ -354,12 +373,14 @@ transition-all"
               z-10 flex items-center px-4 py-2"
               >
                 <Search className="text-gray-500 w-5 h-5 mr-2" />
-                <form className="grow">
+                <form  onSubmit={handelSearch}
+                 className="grow">
                   <input
                     type="text"
                     className="w-full outline-none"
                     placeholder="search groceries..."
-                  />
+                     value={search}
+          onChange={(e)=> setSearch(e.target.value)}/>
                 </form>
                 <button onClick={() => setSearchBarOpen(false)}>
                   <X className="text-gray-500 w-5 h-5" />

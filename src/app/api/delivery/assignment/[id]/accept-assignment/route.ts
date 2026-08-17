@@ -1,16 +1,19 @@
 import { auth } from "@/auth";
 import connectDB from "@/lib/db";
+import emitEventHandler from "@/lib/emitEventHandler";
 import DeliveryAssignment from "@/model/deliveryAssignment.model";
 import Order from "@/model/order.model";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+ context: { params:Promise<{
+  id:string
+}> }
 ) {
   try {
     await connectDB();
-    const { id } = await params;
+    const { id } = await context.params;
     const session = await auth();
     const deliveryBoyId = session?.user?.id;
 
@@ -57,6 +60,9 @@ export async function GET(
 
     order.assignedDeliveryBoy = deliveryBoyId;
     await order.save();
+  await order.populate("assignedDeliveryBoy")
+
+    await emitEventHandler("order-assgned", {orderId: order._id, assignedDeliveryBoy: order.assignedDeliveryBoy})
 
     await DeliveryAssignment.updateMany(
       {

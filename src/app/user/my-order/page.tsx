@@ -1,11 +1,50 @@
 "use client";
-import { IOrder } from "@/model/order.model";
 import axios from "axios";
 import { ArrowLeft, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import {motion} from "motion/react"
 import UserOrderCart from "@/components/UserOrderCart";
+import { getSocket } from "@/lib/socket";
+import { Iuser } from "@/model/user.model";
+import mongoose from "mongoose";
+
+interface IOrder {
+  _id?: mongoose.Types.ObjectId;
+  user: mongoose.Types.ObjectId;
+  items: [
+    {
+      grocery: mongoose.Types.ObjectId;
+      name: string;
+      price: string;
+      unit: string;
+      image: string;
+      quantity: number;
+    },
+  ];
+  isPaid: boolean;
+  totalAmount: number;
+  paymentMethod: "cod" | "online";
+  address: {
+    fullName: string;
+    mobile: string;
+    city: string;
+    state: string;
+    pincode: string;
+    fullAddress: string;
+    latitude: string;
+    longitude: string;
+  };
+  assignment?: mongoose.Types.ObjectId;
+  assignedDeliveryBoy?:Iuser
+  status: "pending" | "out of delivery" | "delivered";
+  createdAt?: Date;
+  updatedAt?: Date;
+  deliveryOtp: string | null;
+  deliveryOtpVerification: Boolean;
+  deliveryAt: Date;
+}
+
 
 function MyOrder() {
   const router = useRouter();
@@ -24,6 +63,19 @@ function MyOrder() {
     };
     getMyorders();
   }, []);
+
+
+  useEffect((): any=>{
+    const socket = getSocket()
+    socket.on("order-assgned", ({orderId, assignedDeliveryBoy})=>{
+      setOrder((prev) => prev?.map((o )=>(
+     o._id == orderId?{...o, assignedDeliveryBoy}: o
+      )))
+    })
+
+    return ()=> socket.off("order-assgned")
+  },[])
+
 
   if(loading){
     return  <div className="flex items-center justify-center min-h-[50vh] font-medium animate-pulse">
