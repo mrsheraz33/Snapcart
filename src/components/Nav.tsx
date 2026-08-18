@@ -11,7 +11,6 @@ import {
   Boxes,
   Menu,
 } from "lucide-react";
-import mongoose from "mongoose";
 import Link from "next/link";
 import Image from "next/image";
 import { FormEvent, useEffect, useRef, useState } from "react";
@@ -24,7 +23,7 @@ import { RootState } from "@/redux/store";
 import { useRouter } from "next/navigation";
 
 interface Iuser {
-  _id?: mongoose.Types.ObjectId;
+  _id?: string
   name: string;
   email: string;
   password?: string;

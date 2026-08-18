@@ -2,14 +2,13 @@ import { getSocket } from '@/lib/socket'
 import { IMessage } from '@/model/message.model'
 import axios from 'axios'
 import { Send ,Sparkle, Loader} from 'lucide-react'
-import mongoose from 'mongoose'
 import { AnimatePresence } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { motion } from "motion/react";
 
 type Props={
-    orderId:mongoose.Types.ObjectId
-    deliveryBoyId:mongoose.Types.ObjectId
+    orderId: string
+    deliveryBoyId: string
 }
 
 function DeliveryChat({orderId, deliveryBoyId}:Props) {
@@ -75,7 +74,7 @@ chatBoxRef.current?.scrollTo({
 
   const getSuggestion = async ()=>{
     setLoading(true)
-    const lastMessage = messages?.filter(m=> m.senderId !== deliveryBoyId)?.at(-1)
+    const lastMessage = messages?.filter(m=> m.senderId.toString() !== deliveryBoyId)?.at(-1)
     try {
       const result = await axios.post("/api/chat/ai-suggestion",{
 message:lastMessage?.text , role: "delivery boy"
@@ -139,9 +138,9 @@ rounded-full shadow-sm border border-purple-200 cursor-pointer"
                 transition={{
                   duration: 0.2,
                 }}
-                className={`flex ${msg.senderId == deliveryBoyId ? "justify-end":"justify-start"}`}>
+                className={`flex ${msg.senderId.toString() == deliveryBoyId ? "justify-end":"justify-start"}`}>
             <div className={`px-4 py-2 max-w-[75%] rounded-2xl shadow ${
-                msg.senderId === deliveryBoyId ?
+                msg.senderId.toString() === deliveryBoyId ?
                 "bg-green-600 text-white rounded-br-none":
                 "bg-gray-100 text-gray-800 rounded-bl-none"
                 }`}>

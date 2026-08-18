@@ -5,8 +5,7 @@ import { getSocket } from "@/lib/socket";
 import { Iuser } from "@/model/user.model";
 import { RootState } from "@/redux/store";
 import axios from "axios";
-import { ArrowLeft, Send, Sparkle,Loader } from "lucide-react";
-import mongoose from "mongoose";
+import { ArrowLeft, Send, Sparkle, Loader } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
@@ -23,11 +22,11 @@ const LiveMap = dynamic(() => import("@/components/LiveMap"), {
 });
 
 interface IOrder {
-  _id?: mongoose.Types.ObjectId;
-  user: mongoose.Types.ObjectId;
+  _id?: string;
+  user: string;
   items: [
     {
-      grocery: mongoose.Types.ObjectId;
+      grocery: string;
       name: string;
       price: string;
       unit: string;
@@ -48,7 +47,7 @@ interface IOrder {
     latitude: string;
     longitude: string;
   };
-  assignment?: mongoose.Types.ObjectId;
+  assignment?: string;
   assignedDeliveryBoy?: Iuser;
   status: "pending" | "out of delivery" | "delivered";
   createdAt?: Date;
@@ -76,10 +75,10 @@ function TrackOrder() {
   const router = useRouter();
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState<IMessage[]>();
-  const chatBoxRef = useRef<HTMLDivElement>(null)
+  const chatBoxRef = useRef<HTMLDivElement>(null);
 
-   const [suggestions, setSuggestions]= useState([])
-    const [loading, setLoading] =useState(false)
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const getOrder = async () => {
@@ -131,16 +130,16 @@ function TrackOrder() {
     };
   }, [order]);
 
-  useEffect(():any => {
+  useEffect((): any => {
     const socket = getSocket();
     socket.emit("join-room", orderId);
 
-        socket.on("send-message", (message) => {
+    socket.on("send-message", (message) => {
       if (message.roomId === orderId) {
         setMessages((prev) => [...prev!, message]);
       }
-    })
-    return ()=> socket.off("send-message")
+    });
+    return () => socket.off("send-message");
   }, []);
 
   const sendMsg = () => {
@@ -159,43 +158,44 @@ function TrackOrder() {
     setNewMessage("");
   };
 
-  useEffect(()=>{
-  const getAllMessages = async ()=>{
-          try {
-          const result = await axios.post("/api/chat/messages", {roomId:orderId})
-           setMessages(result.data)
+  useEffect(() => {
+    const getAllMessages = async () => {
+      try {
+        const result = await axios.post("/api/chat/messages", {
+          roomId: orderId,
+        });
+        setMessages(result.data);
       } catch (error) {
-             console.log(error)
+        console.log(error);
       }
-  }
-   getAllMessages()
-  },[])
+    };
+    getAllMessages();
+  }, []);
 
+  useEffect(() => {
+    chatBoxRef.current?.scrollTo({
+      top: chatBoxRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages]);
 
-  useEffect(()=>{
-  
-  chatBoxRef.current?.scrollTo({
-      top:chatBoxRef.current.scrollHeight,
-      behavior:"smooth"
-  })
-  
-  },[messages])
-
-  
-  const getSuggestion = async ()=>{
-    setLoading(true)
-    const lastMessage = messages?.filter(m=> m.senderId !== userData?._id)?.at(-1)
+  const getSuggestion = async () => {
+    setLoading(true);
+    const lastMessage = messages
+      ?.filter((m) => m.senderId.toString() !== userData?._id)
+      ?.at(-1);
     try {
-      const result = await axios.post("/api/chat/ai-suggestion",{
-      message:lastMessage?.text , role: "user"
-      })
-      setSuggestions(result.data)
-      setLoading(false)
+      const result = await axios.post("/api/chat/ai-suggestion", {
+        message: lastMessage?.text,
+        role: "user",
+      });
+      setSuggestions(result.data);
+      setLoading(false);
     } catch (error) {
-      console.log(error)
-         setLoading(false)
+      console.log(error);
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="w-full min-h-screen bg-linear-to-b from-green-50 to-white">
@@ -227,43 +227,41 @@ function TrackOrder() {
           </div>
 
           <div className="bg-white rounded-3xl shadow-lg border p-4 h-107 flex flex-col">
-
-
-
-
-<div className='flex justify-between items-center mb-3'>
-<span>Quick Replies</span>
-<motion.button
-disabled={loading}
-whileTap={{scale:0.9}}
-className="px-3 py-1 text-xs flex items-center gap-1 bg-purple-100 text-purple-700
+            <div className="flex justify-between items-center mb-3">
+              <span>Quick Replies</span>
+              <motion.button
+                disabled={loading}
+                whileTap={{ scale: 0.9 }}
+                className="px-3 py-1 text-xs flex items-center gap-1 bg-purple-100 text-purple-700
 rounded-full shadow-sm border border-purple-200 cursor-pointer"
-onClick={getSuggestion}>
- <Sparkle size={14}/>{loading ? <Loader className="w-5 h-5 animate-spin"/> :'AI Suggest'}
-    </motion.button>
-</div>
+                onClick={getSuggestion}
+              >
+                <Sparkle size={14} />
+                {loading ? (
+                  <Loader className="w-5 h-5 animate-spin" />
+                ) : (
+                  "AI Suggest"
+                )}
+              </motion.button>
+            </div>
 
+            <div className="flex gap-2 flex-wrap mb-3">
+              {suggestions.map((s, i) => (
+                <motion.div
+                  whileTap={{ scale: 0.92 }}
+                  className="px-3 py-1 text-xs bg-green-50 border border-green-200 text-green-700 rounded-full cursor-pointer"
+                  onClick={() => setNewMessage(s)}
+                  key={i}
+                >
+                  {s}
+                </motion.div>
+              ))}
+            </div>
 
-<div className='flex gap-2 flex-wrap mb-3'>
-{
-    suggestions.map((s , i)=>(
-        <motion.div
-        whileTap={{scale:0.92}}
-        className='px-3 py-1 text-xs bg-green-50 border border-green-200 text-green-700 rounded-full cursor-pointer'
-        onClick={()=> setNewMessage(s)}
-        key={i}>
-            {s}
-        </motion.div>
-    ))
-}
-</div>
-
-
-
-
-
-
-            <div className="flex-1 overflow-y-auto p-2 space-y-3" ref={chatBoxRef}>
+            <div
+              className="flex-1 overflow-y-auto p-2 space-y-3"
+              ref={chatBoxRef}
+            >
               <AnimatePresence>
                 {messages?.map((msg, index) => (
                   <motion.div
@@ -280,11 +278,11 @@ onClick={getSuggestion}>
                     transition={{
                       duration: 0.2,
                     }}
-                    className={`flex ${msg.senderId == userData?._id ? "justify-end" : "justify-start"}`}
+                    className={`flex ${msg.senderId.toString() == userData?._id ? "justify-end" : "justify-start"}`}
                   >
                     <div
                       className={`px-4 py-2 max-w-[75%] rounded-2xl shadow ${
-                        msg.senderId === userData?._id
+                        msg.senderId.toString() === userData?._id
                           ? "bg-green-600 text-white rounded-br-none"
                           : "bg-gray-100 text-gray-800 rounded-bl-none"
                       }`}

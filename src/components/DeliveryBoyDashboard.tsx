@@ -219,7 +219,7 @@ rounded-lg" onClick={()=> window.location.reload()}>Refresh Earning</button>
 
           <DeliveryChat
             orderId={activeOrder.order._id}
-            deliveryBoyId={userData?._id!}
+            deliveryBoyId={userData?._id?.toString()!}
           />
 
 <div className="mt-6 bg-white rounded-xl border shadow p-6">

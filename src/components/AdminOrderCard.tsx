@@ -14,18 +14,17 @@ import {
   PhoneCallIcon,
 
 } from "lucide-react";
-import mongoose from "mongoose";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
 
 interface IOrder {
-  _id?: mongoose.Types.ObjectId;
-  user: mongoose.Types.ObjectId;
+  _id?:  string
+  user: string
   items: [
     {
-      grocery: mongoose.Types.ObjectId;
+      grocery:  string
       name: string;
       price: string;
       unit: string;
@@ -46,7 +45,7 @@ interface IOrder {
     latitude: string;
     longitude: string;
   };
-  assignment?: mongoose.Types.ObjectId;
+  assignment?: string
   assignedDeliveryBoy?:Iuser
   status: "pending" | "out of delivery" | "delivered";
   createdAt?: Date;
