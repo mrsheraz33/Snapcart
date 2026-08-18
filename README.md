@@ -131,7 +131,6 @@ NEXT_PUBLIC_SOCKET_SERVER_URL=https://your-socket-server.onrender.com
 
 ---
 
-## Deployment
+## Author
 
-- Frontend & REST APIs: Deployed on Vercel.
-- Socket Server: Deployed on Render.
+Muhammad Sheraz | Software Engineer
