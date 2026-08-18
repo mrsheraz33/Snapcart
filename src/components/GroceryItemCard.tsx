@@ -35,18 +35,20 @@ function GroceryItemCard({ item }: { item: IGrocery }) {
       className="bg-white rounded-2xl shadow-xs hover:shadow-lg transition-all duration-300
         overflow-hidden border border-gray-100 flex flex-col h-full"
     >
-      {/* Image Container */}
-      <div className="relative w-full aspect-4/3 bg-gray-50 overflow-hidden group">
-        <Image
-          src={item.image}
-          fill
-          alt={item.name}
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
-        />
-      </div>
-
-      {/* Content Container */}
+  
+ {/* Rounded Image Container */}
+  <div className="relative w-full aspect-4/3 bg-gray-50 overflow-hidden group p-2">
+    <div className="relative w-full h-full rounded-xl overflow-hidden">
+      <Image
+        src={item.image}
+        fill
+        alt={item.name}
+        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+        className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+      />
+    </div>
+  </div>
+      
       <div className="p-4 flex flex-col flex-1 justify-between">
         <div>
           <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider mb-1 line-clamp-1">
@@ -57,7 +59,6 @@ function GroceryItemCard({ item }: { item: IGrocery }) {
           </h3>
         </div>
 
-        {/* Price & Unit + Action Button Block (Fixed at Bottom) */}
         <div className="mt-3 pt-2">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
