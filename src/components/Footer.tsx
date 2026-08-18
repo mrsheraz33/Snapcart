@@ -12,8 +12,8 @@ function Footer() {
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 text-white mt-20"
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="bg-linear-to-r from-green-600 via-green-700 to-green-800 text-white mt-20"
     >
       <div className="w-[90%] md:w-[85%] max-w-7xl mx-auto pt-12 pb-8">
         {/* Main Grid Section */}
@@ -116,7 +116,7 @@ function Footer() {
               </li>
               <li className="flex items-start gap-3">
                 <MapPin size={16} className="text-green-300 mt-1" />
-                <span>Main Boulevard, Gulberg III, Lahore, Pakistan</span>
+                <span>High Street (Main Market), Sahiwal, Punjab, Pakistan</span>
               </li>
             </ul>
           </div>
