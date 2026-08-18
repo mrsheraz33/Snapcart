@@ -40,7 +40,7 @@ function GroceryItemCard({ item }: { item: IGrocery }) {
           fill
           alt={item.name}
           sizes="(max-width:786px) 100vw, 25vw"
-          className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+          className="object-contain p-4 transition-transform duration-500 group-hover:scale-105 rounded-4xl"
         />
         <div
           className="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0
