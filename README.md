@@ -118,7 +118,7 @@ NEXT_PUBLIC_SOCKET_SERVER_URL=https://your-socket-server.onrender.com
 ## Local Development Setup
 
 1. Clone the repository:
-   git clone https://github.com/your-username/snapcart.git
+   git clone https://github.com/mrsheraz33/Snapcart.git
    cd snapcart
 
 2. Install dependencies:
