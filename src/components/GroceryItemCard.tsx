@@ -36,7 +36,7 @@ function GroceryItemCard({ item }: { item: IGrocery }) {
         overflow-hidden border border-gray-100 flex flex-col h-full"
     >
   
- {/* Rounded Image Container */}
+
   <div className="relative w-full aspect-4/3 bg-gray-50 overflow-hidden group p-2">
     <div className="relative w-full h-full rounded-xl overflow-hidden">
       <Image
