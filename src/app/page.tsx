@@ -12,13 +12,12 @@ import User from '@/model/user.model'
 import { redirect } from 'next/navigation'
 
 async function Home(props:{
-  searchParam:Promise<{
+  searchParams:Promise<{
     q:string
   }>
 }) {
 
-  const searchParams = await props.searchParam
-  console.log(searchParams)
+  const searchParams = await props.searchParams
   await connectDB()
   const session = await auth()
   const user = await User.findById(session?.user?.id)
