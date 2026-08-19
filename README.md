@@ -74,6 +74,7 @@ To bypass serverless WebSocket limitations on Vercel and ensure low-latency real
 
 ## Project Structure
 
+```text
 snapcart/
 ├── src/
 │   ├── app/
@@ -87,6 +88,7 @@ snapcart/
 │   └── lib/
 ├── public/
 └── package.json
+```
 
 ---
 
