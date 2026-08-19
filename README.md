@@ -10,7 +10,7 @@ To bypass serverless WebSocket limitations on Vercel and ensure low-latency real
 
 1. Frontend and Core API Gateway (This Repository): Deployed on Vercel
 2. Dedicated Real-Time Socket Server: Deployed on Render
-   - Socket.io Repository: YOUR_SOCKET_SERVER_GITHUB_REPO_URL
+   - Socket.io Repository: https://github.com/mrsheraz33/Socket.io.git
 
 ---
 
