@@ -96,6 +96,7 @@ snapcart/
 
 Create a `.env.local` file in the root directory and configure the following:
 
+```env
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your_nextauth_secret
 
@@ -113,7 +114,8 @@ CLOUDINARY_API_SECRET=your_api_secret
 
 GEMINI_API_KEY=your_gemini_api_key
 
-NEXT_PUBLIC_SOCKET_SERVER_URL=https://your-socket-server.onrender.com
+NEXT_PUBLIC_SOCKET_SERVER_URL=[https://your-socket-server.onrender.com](https://your-socket-server.onrender.com)
+```
 
 ---
 
